@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, request
 from markupsafe import escape
 from flask import request
 import pickle  as pkl
+import numpy as np
 
 app = Flask(__name__)
 
@@ -48,8 +49,8 @@ def hello_specific():
 def learn():
     return """In this page, I am practising Flask. 
                 <br>
-                <form action="/learn/loantap" method="get">
-                    <button type="submit">Go to LoanTap Application Prediction</button>
+                <form action="/learn/jamboree" method="get">
+                    <button type="submit">Go to Jamboree Admission Chance Prediction</button>
                 </form>
                 <br>
                 <form action="/" method="get">
@@ -66,13 +67,42 @@ def ping():
 # model_file = open("loan_application_classifier_sk_version_1.5.2.pkl", "rb")
 # model = pkl.load(model_file)
 
-@app.route('/learn/loantap', methods=["GET"])
-def loan_tap():
-    return """ <h1> Loan Approval Application </h1>
+@app.route('/learn/jamboree', methods=["GET", "POST"])
+def jamboree():
+    if request.method == "GET":
+        return """ <h1> Jamboree Admission Chance Prediction </h1>
                 <br>
                 <form action="/" method="get">
                     <button type="submit">Go to Home Page</button>
                 </form>
-           """
+                """
+    else:
+        """
+        An example post JSON:
+        {
+            "CGPA": 9.24,
+            "GRE": 330,
+            "TOEFL": 114,
+            "University_Rating": 3,
+            "Research": 1,
+            "LOR": 4.5
+        }
+        """
+        post_req = request.get_json()
 
-# continue building using this: https://github.com/mohit2016/Flask-Dec24/blob/main/loan.py 
+        input_data = np.array([[post_req["GRE"], post_req["TOEFL"], post_req["University_Rating"], 5, post_req["LOR"], post_req["CGPA"],post_req["Research"]]]) # my scaler() needs Statement of proposal rating for transforming, so added 5.
+
+        with open('scale_jamboree.pkl', 'rb') as scale_file:
+            scaler = pkl.load(scale_file)
+        scaled_input = scaler.transform(input_data)
+        scaled_input = scaled_input.reshape(-1,1)
+        scaled_input = np.append(scaled_input[:3], scaled_input[4:]).reshape(1,-1) # My model doesn't need Statement of Proposal rating, hence removing.
+
+        with open('sk_model_jamboree.pkl', 'rb') as file:
+            sk_model = pkl.load(file)
+        pred = sk_model.predict(scaled_input)
+        if pred<0:
+            pred = [0]
+        elif pred > 1.00:
+            pred = [1.00]
+        return f"Your Admission chance is: {pred[0]*100:.2f} %"

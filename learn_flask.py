@@ -105,4 +105,4 @@ def jamboree():
             pred = [0]
         elif pred > 1.00:
             pred = [1.00]
-        return f"Your Admission chance is: {pred[0]*100:.1f} %"
+        return f"Your Admission chance is: {pred[0]*100:.2f} %"

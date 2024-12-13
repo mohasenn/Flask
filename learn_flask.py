@@ -71,6 +71,15 @@ def ping():
 def jamboree():
     if request.method == "GET":
         return """ <h1> Jamboree Admission Chance Prediction </h1>
+            An example JSON format for POST request:
+        {
+            "CGPA": 9.24,
+            "GRE": 330,
+            "TOEFL": 114,
+            "University_Rating": 3,
+            "Research": 1,
+            "LOR": 4.5
+        }
                 <br>
                 <form action="/" method="get">
                     <button type="submit">Go to Home Page</button>
